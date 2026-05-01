@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - Personal Finance Tracker</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+    .btn { padding: 5px 10px; cursor: pointer; }
+    .section { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+    .summary-box { display: flex; justify-content: space-between; }
+    .summary-box div { background: #eee; padding: 20px; border-radius: 5px; text-align: center; width: 30%; }
+    input, select { margin: 5px 0; padding: 5px; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h1>Dashboard</h1>
+    <button onclick="logout()" class="btn">Logout</button>
+  </div>
+  
+  <div class="section summary-box">
+    <div><h3>Income</h3><p id="total-income">$0.00</p></div>
+    <div><h3>Expenses</h3><p id="total-expense">$0.00</p></div>
+    <div><h3>Savings</h3><p id="total-savings">$0.00</p></div>
+  </div>
+
+  <div class="section">
+    <h2>Manage Categories</h2>
+    <input type="text" id="cat-name" placeholder="Category Name">
+    <select id="cat-type">
+      <option value="INCOME">Income</option>
+      <option value="EXPENSE">Expense</option>
+    </select>
+    <button onclick="addCategory()" class="btn">Add</button>
+    <ul id="category-list"></ul>
+  </div>
+
+  <div class="section">
+    <h2>Add Transaction</h2>
+    <input type="number" id="tx-amount" placeholder="Amount (e.g. 50.50)" step="0.01">
+    <input type="date" id="tx-date">
+    <input type="text" id="tx-desc" placeholder="Description">
+    <select id="tx-type">
+      <option value="EXPENSE">Expense</option>
+      <option value="INCOME">Income</option>
+    </select>
+    <select id="tx-category"><option value="">No Category</option></select>
+    <button onclick="addTransaction()" class="btn">Add Transaction</button>
+  </div>
+
+  <div class="section">
+    <h2>Transactions</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Category</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="transaction-list"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/index.html';
+
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+
+    async function loadDashboard() {
+      const res = await fetch('/api/dashboard', { headers });
+      if(res.status === 401) return logout();
+      const data = await res.json();
+      
+      document.getElementById('total-income').innerText = `$${data.summary.totalIncome.toFixed(2)}`;
+      document.getElementById('total-expense').innerText = `$${data.summary.totalExpense.toFixed(2)}`;
+      document.getElementById('total-savings').innerText = `$${data.summary.savings.toFixed(2)}`;
+    }
+
+    async function loadCategories() {
+      const res = await fetch('/api/categories', { headers });
+      const categories = await res.json();
+      
+      const list = document.getElementById('category-list');
+      const select = document.getElementById('tx-category');
+      list.innerHTML = '';
+      select.innerHTML = '<option value="">No Category</option>';
+      
+      categories.forEach(c => {
+        list.innerHTML += `<li>${c.name} (${c.type}) <button onclick="deleteCategory('${c.id}')">X</button></li>`;
+        select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+      });
+    }
+
+    async function loadTransactions() {
+      const res = await fetch('/api/transactions', { headers });
+      const txs = await res.json();
+      
+      const tbody = document.getElementById('transaction-list');
+      tbody.innerHTML = '';
+      
+      txs.forEach(t => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${t.date}</td>
+            <td>${t.description}</td>
+            <td>${t.type}</td>
+            <td>$${parseFloat(t.amount).toFixed(2)}</td>
+            <td>${t.Category ? t.Category.name : 'N/A'}</td>
+            <td><button onclick="deleteTransaction('${t.id}')">Delete</button></td>
+          </tr>
+        `;
+      });
+    }
+
+    async function addCategory() {
+      const name = document.getElementById('cat-name').value;
+      const type = document.getElementById('cat-type').value;
+      await fetch('/api/categories', {
+        method: 'POST', headers, body: JSON.stringify({ name, type })
+      });
+      loadCategories();
+    }
+
+    async function deleteCategory(id) {
+      await fetch(`/api/categories/${id}`, { method: 'DELETE', headers });
+      loadCategories();
+      loadTransactions(); // To reflect null categories
+    }
+
+    async function addTransaction() {
+      const amount = document.getElementById('tx-amount').value;
+      const date = document.getElementById('tx-date').value;
+      const description = document.getElementById('tx-desc').value;
+      const type = document.getElementById('tx-type').value;
+      const categoryId = document.getElementById('tx-category').value || null;
+      
+      await fetch('/api/transactions', {
+        method: 'POST', headers, body: JSON.stringify({ amount, date, description, type, categoryId })
+      });
+      loadTransactions();
+      loadDashboard();
+    }
+
+    async function deleteTransaction(id) {
+      await fetch(`/api/transactions/${id}`, { method: 'DELETE', headers });
+      loadTransactions();
+      loadDashboard();
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      window.location.href = '/index.html';
+    }
+
+    // Initialize
+    loadDashboard();
+    loadCategories();
+    loadTransactions();
+  </script>
+</body>
+</html>
