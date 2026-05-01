@@ -1,0 +1,33 @@
+const nodemailer = require('nodemailer');
+
+async function sendNotification(to, subject, text) {
+  try {
+    // Generate test SMTP service account from ethereal.email
+    // Only needed if you don't have a real mail account for testing
+    let testAccount = await nodemailer.createTestAccount();
+
+    let transporter = nodemailer.createTransport({
+      host: "smtp.ethereal.email",
+      port: 587,
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: testAccount.user, // generated ethereal user
+        pass: testAccount.pass, // generated ethereal password
+      },
+    });
+
+    let info = await transporter.sendMail({
+      from: '"Finance Tracker" <noreply@financetracker.com>',
+      to: to,
+      subject: subject,
+      text: text,
+    });
+
+    console.log("Message sent: %s", info.messageId);
+    console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+  } catch (err) {
+    console.error("Error sending email", err);
+  }
+}
+
+module.exports = { sendNotification };

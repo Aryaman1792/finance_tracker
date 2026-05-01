@@ -10,7 +10,7 @@ exports.getDashboardData = async (req, res) => {
       where: { userId },
       attributes: [
         'type',
-        [sequelize.fn('sum', sequelize.col('amount')), 'total']
+        [sequelize.fn('sum', sequelize.col('baseAmount')), 'total']
       ],
       group: ['type']
     });
@@ -37,7 +37,7 @@ exports.getDashboardData = async (req, res) => {
       attributes: [
         [sequelize.fn('date_trunc', 'month', sequelize.col('date')), 'month'],
         'type',
-        [sequelize.fn('sum', sequelize.col('amount')), 'total']
+        [sequelize.fn('sum', sequelize.col('baseAmount')), 'total']
       ],
       group: ['month', 'type'],
       order: [[sequelize.fn('date_trunc', 'month', sequelize.col('date')), 'ASC']]
@@ -48,7 +48,7 @@ exports.getDashboardData = async (req, res) => {
       where: { userId, type: 'EXPENSE' },
       attributes: [
         'categoryId',
-        [sequelize.fn('sum', sequelize.col('amount')), 'total']
+        [sequelize.fn('sum', sequelize.col('baseAmount')), 'total']
       ],
       include: [{ model: Category, attributes: ['name'] }],
       group: ['categoryId', 'Category.id', 'Category.name']

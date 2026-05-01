@@ -23,6 +23,19 @@ const Transaction = sequelize.define('Transaction', {
     type: DataTypes.ENUM('INCOME', 'EXPENSE'),
     allowNull: false,
   },
+  currency: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'USD',
+  },
+  baseAmount: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
+  receiptUrl: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
 });
 
 module.exports = Transaction;

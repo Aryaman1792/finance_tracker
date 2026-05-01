@@ -30,7 +30,7 @@ exports.generateMonthlyReport = async (req, res) => {
     let totalExpense = 0;
 
     transactions.forEach(t => {
-      const amt = parseFloat(t.amount);
+      const amt = parseFloat(t.baseAmount);
       if (t.type === 'INCOME') totalIncome += amt;
       if (t.type === 'EXPENSE') totalExpense += amt;
     });

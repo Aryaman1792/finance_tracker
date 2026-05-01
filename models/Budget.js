@@ -19,6 +19,10 @@ const Budget = sequelize.define('Budget', {
     type: DataTypes.INTEGER, // e.g., 2024
     allowNull: false,
   },
+  overrunNotified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
 });
 
 module.exports = Budget;
