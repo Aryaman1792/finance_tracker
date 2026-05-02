@@ -248,21 +248,10 @@ The application is deployed on a cloud platform.
 
 ---
 
-## 📽 Submission Details
 
-* 🔗 **GitHub Repository:** *Add link*
-* 🔗 **Live Demo:** *Add link*
-* 🎥 **Loom Video Walkthrough:** *Add link*
-
----
 
 ## 👨‍💻 Author
 
-**Your Name**
-Backend Developer Candidate
+Aryaman Jyoti Chaliha
 
 ---
-
-## 📜 License
-
-This project is intended for evaluation purposes only.
